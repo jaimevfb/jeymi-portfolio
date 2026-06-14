@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────────────
+   Phosphor Terminal — root tokens
+   Mirrored from tailwind.config.ts so canvas + JS read one source.
+   ─────────────────────────────────────────────────────────── */
+:root {
+  --void: #070a07;
+  --void-50: #0a0e0a;
+  --void-100: #0e140e;
+  --phosphor: #39ff6a;
+  --phosphor-dim: #2bc053;
+  --phosphor-deep: #137a30;
+  --bone: #e8ede6;
+  --bone-dim: #a6aea3;
+  --amber: #ffb23e;
+
+  --gutter: clamp(1.25rem, 5vw, 5rem);
+
+  --ease-terminal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-snap: cubic-bezier(0.7, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lenis: disable native smooth-scroll so JS scroll owns the timeline. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--void);
+  color: var(--bone);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Subtle vignette so the void has depth, not flatness. */
+  background-image: radial-gradient(
+    130% 110% at 50% -10%,
+    #0c120c 0%,
+    var(--void) 55%,
+    #040604 100%
+  );
+}
+
+/* Selection in phosphor — small delight. */
+::selection {
+  background: var(--phosphor);
+  color: var(--void);
+}
+
+/* ── Focus: keyboard users get a clear phosphor ring; mouse users don't ── */
+:focus-visible {
+  outline: 2px solid var(--phosphor);
+  outline-offset: 3px;
+}
+
+/* ── Film grain overlay (fixed, non-interactive) ── */
+.grain-layer {
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  will-change: transform;
+}
+
+/* ── CRT scanlines — taste, not costume (≤4% opacity) ── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  pointer-events: none;
+  opacity: 0.035;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.9) 0px,
+    rgba(255, 255, 255, 0.9) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Hairline rule used across the Swiss grid. */
+.rule {
+  border-color: color-mix(in srgb, var(--bone) 14%, transparent);
+}
+
+/* Phosphor text glow utility (used sparingly on display headings). */
+.glow-phosphor {
+  text-shadow:
+    0 0 12px color-mix(in srgb, var(--phosphor) 45%, transparent),
+    0 0 32px color-mix(in srgb, var(--phosphor) 18%, transparent);
+}
+
+/* Nameplate — refined, gallery-grade. An off-white letterform with a slow
+   phosphor "sheen" that sweeps across it, plus a soft green halo. No glitch,
+   no chromatic fringe — just light moving over polished type. */
+.name-plate {
+  background-image: linear-gradient(
+    100deg,
+    var(--bone) 0%,
+    var(--bone) 38%,
+    #ffffff 47%,
+    #7cffa0 50%,
+    #ffffff 53%,
+    var(--bone) 62%,
+    var(--bone) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 0% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--phosphor) 28%, transparent))
+    drop-shadow(0 0 46px color-mix(in srgb, var(--phosphor) 12%, transparent));
+  animation: name-sheen 7s ease-in-out infinite;
+}
+.name-plate:focus-visible {
+  outline: none;
+}
+@keyframes name-sheen {
+  0%,
+  100% {
+    background-position: 0% 0;
+  }
+  50% {
+    background-position: 100% 0;
+  }
+}
+
+/* Hide default cursor only when the custom magnetic cursor is live. */
+.cursor-hidden,
+.cursor-hidden * {
+  cursor: none;
+}
+
+/* ───────────────────────────────────────────────────────────
+   prefers-reduced-motion — curtail everything kinetic.
+   Rain is reduced to a faint static field (handled in JS),
+   decode resolves instantly, grain/scan/blink freeze.
+   ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .grain-layer,
+  .scanlines {
+    animation: none !important;
+  }
+}
