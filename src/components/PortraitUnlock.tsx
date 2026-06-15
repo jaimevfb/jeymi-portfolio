@@ -16,11 +16,9 @@ type Phase = "locked" | "scanning" | "open";
 export default function PortraitUnlock({
   src,
   alt,
-  name,
 }: {
   src: string;
   alt: string;
-  name: string;
 }) {
   const [phase, setPhase] = useState<Phase>("locked");
   const [pct, setPct] = useState(0);
@@ -165,20 +163,15 @@ export default function PortraitUnlock({
       <span className="pointer-events-none absolute bottom-2 left-2 z-[6] h-6 w-6 border-b-2 border-l-2 border-phosphor/70" aria-hidden="true" />
       <span className="pointer-events-none absolute bottom-2 right-2 z-[6] h-6 w-6 border-b-2 border-r-2 border-phosphor/70" aria-hidden="true" />
 
-      {/* Labels when open */}
+      {/* Re-lock control when open */}
       {phase === "open" && (
-        <>
-          <span className="absolute left-3 top-3 z-[6] font-display text-micro uppercase tracking-[0.2em] text-phosphor/85">
-            // subject : {name}
-          </span>
-          <button
-            onClick={relock}
-            aria-label="Re-encrypt"
-            className="absolute bottom-3 right-3 z-[6] flex items-center gap-1.5 border border-bone/20 bg-void/60 px-2.5 py-1 font-display text-micro uppercase tracking-[0.2em] text-bone-dim backdrop-blur-sm transition-colors hover:border-phosphor hover:text-phosphor"
-          >
-            ⟲ Lock
-          </button>
-        </>
+        <button
+          onClick={relock}
+          aria-label="Re-encrypt"
+          className="absolute bottom-3 right-3 z-[6] flex items-center gap-1.5 border border-bone/20 bg-void/60 px-2.5 py-1 font-display text-micro uppercase tracking-[0.2em] text-bone-dim backdrop-blur-sm transition-colors hover:border-phosphor hover:text-phosphor"
+        >
+          ⟲ Lock
+        </button>
       )}
     </figure>
   );

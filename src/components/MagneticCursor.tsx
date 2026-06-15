@@ -65,12 +65,12 @@ export default function MagneticCursor() {
       <div
         ref={ringRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[70] h-8 w-8 rounded-full border border-phosphor/70 mix-blend-screen transition-[border-color] duration-300"
+        className="pointer-events-none fixed left-0 top-0 z-[100] h-8 w-8 rounded-full border border-phosphor/70 mix-blend-screen transition-[border-color] duration-300"
       />
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[70] h-1 w-1 rounded-full bg-phosphor"
+        className="pointer-events-none fixed left-0 top-0 z-[100] h-1 w-1 rounded-full bg-phosphor"
       />
     </>
   );

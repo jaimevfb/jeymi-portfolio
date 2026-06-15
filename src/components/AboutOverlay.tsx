@@ -130,7 +130,6 @@ export default function AboutOverlay() {
                 <PortraitUnlock
                   src={about.portrait}
                   alt={`${site.name} — portrait`}
-                  name={about.fullName}
                 />
               ) : (
                 <div className="relative mx-auto flex aspect-[4/5] w-full max-w-sm items-center justify-center border border-bone/15 bg-void-100">
