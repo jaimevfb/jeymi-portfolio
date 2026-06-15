@@ -182,6 +182,9 @@ body {
 .sig-c {
   animation: sig-spin 30s linear infinite;
 }
+.sig-sweep {
+  animation: sig-spin 5s linear infinite;
+}
 .sig-pulse {
   animation: sig-pulse 3s ease-in-out infinite;
 }

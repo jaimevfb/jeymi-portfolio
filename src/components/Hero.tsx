@@ -86,7 +86,7 @@ export default function Hero() {
             </div>
             <div className="mt-5 border-t rule pt-3">
               <span className="block text-phosphor/70">// Status</span>
-              <span className="text-amber">Open for 2026 opportunities</span>
+              <span className="text-amber">Open for commissions</span>
             </div>
           </aside>
         </div>

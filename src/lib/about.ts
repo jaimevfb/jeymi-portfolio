@@ -24,7 +24,7 @@ export const about = {
     { label: "Based in", value: "Manila, Philippines" },
     { label: "Birthday", value: "March 26, 2007" },
     { label: "Focus", value: "Poster · Motion · Identity" },
-    { label: "Status", value: "Open for 2026 opportunities" },
+    { label: "Status", value: "Open for commissions" },
   ],
 
   // What you do.
