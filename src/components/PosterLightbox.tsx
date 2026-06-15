@@ -5,14 +5,16 @@ import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import type { Project } from "@/lib/projects";
 import RainBackdrop from "./RainBackdrop";
+import DecodeText from "./DecodeText";
 
 /**
- * Full-screen "zoom" view of a poster, opened from the marquee.
- *  • Matrix rain persists behind the artwork.
- *  • Filmstrip of every poster along the bottom (click to jump).
- *  • Swipe left/right (touch + drag) to move between posters.
- *  • Subtle parallax tilt on the poster (fine pointer).
- *  • Keyboard: Esc closes, ←/→ navigate. Backdrop click closes. Scroll locked.
+ * Full-screen poster "case file". Designed HUD presentation:
+ *  • signature rain + grid + scanlines backdrop (matches the dossier)
+ *  • poster framed with corner brackets + a scanning sweep, glitch-resolves in
+ *    on open and on navigate, parallax-tilts toward the pointer
+ *  • terminal info panel (decode title, meta, tags, blurb, prev/next)
+ *  • filmstrip reel along the bottom
+ * Keyboard: Esc closes, ←/→ navigate. Swipe to navigate. Scroll locked.
  */
 export default function PosterLightbox({
   projects,
@@ -63,12 +65,12 @@ export default function PosterLightbox({
     const r = el.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(1100px) rotateX(${-py * 8}deg) rotateY(${px * 8}deg)`;
+    el.style.transform = `perspective(1200px) rotateX(${-py * 7}deg) rotateY(${px * 7}deg)`;
   };
   const onFigLeave = () => {
     if (figRef.current)
       figRef.current.style.transform =
-        "perspective(1100px) rotateX(0deg) rotateY(0deg)";
+        "perspective(1200px) rotateX(0deg) rotateY(0deg)";
   };
 
   // Swipe / drag to navigate.
@@ -86,9 +88,11 @@ export default function PosterLightbox({
     }
   };
 
+  const counter = `${String(index + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`;
+
   return (
     <motion.div
-      className="fixed inset-0 z-[80] flex flex-col bg-void/90 backdrop-blur-lg"
+      className="fixed inset-0 z-[80] flex flex-col bg-void/95"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -101,20 +105,24 @@ export default function PosterLightbox({
       }}
       style={{ ["--accent" as string]: project.accentColor }}
     >
-      {/* Matrix rain persists behind the zoom. */}
+      {/* Designed backdrop */}
       <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-        <RainBackdrop
-          opacity={0.42}
-          density={1.15}
-          interactive={false}
-          defer={false}
-        />
+        <RainBackdrop opacity={0.34} density={1} interactive={false} defer={false} />
       </div>
+      <div className="hud-grid pointer-events-none absolute inset-0 z-0 opacity-60" aria-hidden="true" />
+      <div className="hud-scan pointer-events-none absolute inset-0 z-0 opacity-40" aria-hidden="true" />
+      <span className="pointer-events-none absolute left-4 top-4 z-[15] h-8 w-8 border-l border-t border-phosphor/40" aria-hidden="true" />
+      <span className="pointer-events-none absolute right-4 top-4 z-[15] h-8 w-8 border-r border-t border-phosphor/40" aria-hidden="true" />
+      <span className="pointer-events-none absolute bottom-4 left-4 z-[15] h-8 w-8 border-b border-l border-phosphor/40" aria-hidden="true" />
+      <span className="pointer-events-none absolute bottom-4 right-4 z-[15] h-8 w-8 border-b border-r border-phosphor/40" aria-hidden="true" />
 
       {/* Top bar */}
-      <div className="relative z-10 flex items-center justify-between px-gutter py-5">
+      <div className="relative z-10 flex items-center justify-between px-gutter py-4">
         <span className="font-display text-caption uppercase tracking-[0.25em] text-phosphor">
-          // {project.category} — {project.year} · {String(index + 1).padStart(2, "0")}/{String(n).padStart(2, "0")}
+          // file {counter}
+        </span>
+        <span className="hidden font-display text-micro uppercase tracking-[0.2em] text-bone-faint sm:block">
+          {project.client ?? "Parallel Dimensions"}
         </span>
         <button
           ref={closeRef}
@@ -125,85 +133,139 @@ export default function PosterLightbox({
         </button>
       </div>
 
-      {/* Stage */}
+      {/* Stage — poster + info */}
       <div
-        className="relative z-10 flex flex-1 items-center justify-center px-gutter pb-2"
+        className="relative z-10 flex flex-1 items-center justify-center overflow-hidden px-gutter pb-2"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
         onPointerDown={onDown}
         onPointerUp={onUp}
       >
-        <button
-          onClick={prev}
-          aria-label="Previous poster"
-          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 px-4 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor sm:left-6"
-        >
-          ←
-        </button>
-
-        <motion.figure
-          key={project.slug}
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="flex max-h-full flex-col items-center"
-        >
-          <div
-            ref={figRef}
-            onPointerMove={onFigMove}
-            onPointerLeave={onFigLeave}
-            className="relative border border-bone/15 transition-transform duration-200 ease-out will-change-transform"
-            style={{
-              boxShadow:
-                "0 0 60px color-mix(in srgb, var(--accent) 22%, transparent)",
-            }}
+        <div className="grid w-full max-w-5xl grid-cols-1 items-center gap-8 lg:grid-cols-[auto_minmax(260px,1fr)]">
+          {/* Poster */}
+          <button
+            onClick={prev}
+            aria-label="Previous"
+            className="absolute left-1 top-1/2 z-20 -translate-y-1/2 px-3 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor lg:left-2"
           >
-            {project.video ? (
-              <video
-                src={project.video}
-                poster={project.cover}
-                autoPlay
-                loop
-                muted
-                playsInline
-                controls
-                className="max-h-[64vh] w-auto max-w-[88vw]"
-              />
-            ) : (
-              <Image
-                src={project.cover}
-                alt={`${project.title} — ${project.blurb}`}
-                width={1080}
-                height={1350}
-                unoptimized={isSvg}
-                className="h-auto max-h-[64vh] w-auto max-w-[88vw] object-contain"
-                priority
-              />
-            )}
-          </div>
-          <figcaption className="mt-4 text-center">
-            <span className="font-display text-h3 font-bold text-bone">
-              {project.title}
-            </span>
-            <span className="mt-1 block max-w-prose text-caption text-bone-dim">
-              {project.blurb}
-            </span>
-          </figcaption>
-        </motion.figure>
+            ←
+          </button>
 
-        <button
-          onClick={next}
-          aria-label="Next poster"
-          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 px-4 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor sm:right-6"
-        >
-          →
-        </button>
+          <motion.figure
+            key={project.slug}
+            initial={{ opacity: 0, scale: 1.05, filter: "brightness(2.4) blur(6px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "brightness(1) blur(0px)" }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mx-auto"
+          >
+            <div
+              ref={figRef}
+              onPointerMove={onFigMove}
+              onPointerLeave={onFigLeave}
+              className="relative overflow-hidden border border-bone/15 transition-transform duration-200 ease-out will-change-transform"
+              style={{
+                boxShadow:
+                  "0 0 70px color-mix(in srgb, var(--accent) 26%, transparent)",
+              }}
+            >
+              {project.video ? (
+                <video
+                  src={project.video}
+                  poster={project.cover}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                  className="max-h-[58vh] w-auto max-w-[86vw] lg:max-w-[44vw]"
+                />
+              ) : (
+                <Image
+                  src={project.cover}
+                  alt={`${project.title} — ${project.blurb}`}
+                  width={1080}
+                  height={1350}
+                  unoptimized={isSvg}
+                  className="h-auto max-h-[58vh] w-auto max-w-[86vw] object-contain lg:max-w-[44vw]"
+                  priority
+                />
+              )}
+              {/* scan sweep + HUD corners on the poster */}
+              <span className="portrait-sweep pointer-events-none absolute inset-x-0 top-0" aria-hidden="true" />
+              <span className="pointer-events-none absolute left-1.5 top-1.5 h-5 w-5 border-l-2 border-t-2 opacity-80" style={{ borderColor: "var(--accent)" }} aria-hidden="true" />
+              <span className="pointer-events-none absolute bottom-1.5 right-1.5 h-5 w-5 border-b-2 border-r-2 opacity-80" style={{ borderColor: "var(--accent)" }} aria-hidden="true" />
+            </div>
+          </motion.figure>
+
+          <button
+            onClick={next}
+            aria-label="Next"
+            className="absolute right-1 top-1/2 z-20 -translate-y-1/2 px-3 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor lg:right-2"
+          >
+            →
+          </button>
+
+          {/* Info panel */}
+          <motion.aside
+            key={`${project.slug}-info`}
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-prose text-center lg:text-left"
+          >
+            <p
+              className="font-display text-micro uppercase tracking-[0.3em]"
+              style={{ color: project.accentColor }}
+            >
+              {project.category} · {project.year}
+            </p>
+            <h2 className="mt-3 font-display text-h2 font-extrabold uppercase leading-[0.95] text-bone">
+              <DecodeText text={project.title} speed={32} />
+            </h2>
+            <p className="mt-4 text-lead text-bone-dim">{project.blurb}</p>
+            <p className="mt-3 hidden text-caption leading-relaxed text-bone-faint sm:block">
+              {project.description}
+            </p>
+
+            <ul className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
+              {project.tags.map((t) => (
+                <li
+                  key={t}
+                  className="border border-bone/15 px-2.5 py-1 font-display text-micro uppercase tracking-[0.15em] text-bone-dim"
+                >
+                  {t}
+                </li>
+              ))}
+            </ul>
+
+            {project.role && (
+              <p className="mt-5 font-display text-micro uppercase tracking-[0.2em] text-bone-faint">
+                <span className="text-phosphor/70">// role</span> {project.role}
+              </p>
+            )}
+
+            <div className="mt-6 flex items-center justify-center gap-3 lg:justify-start">
+              <button
+                onClick={prev}
+                className="border border-bone/20 px-4 py-2 font-display text-micro uppercase tracking-[0.2em] text-bone-dim transition-colors hover:border-phosphor hover:text-phosphor"
+              >
+                ◂ Prev
+              </button>
+              <button
+                onClick={next}
+                className="border border-phosphor/50 bg-phosphor/5 px-4 py-2 font-display text-micro uppercase tracking-[0.2em] text-phosphor transition-colors hover:bg-phosphor hover:text-void"
+              >
+                Next ▸
+              </button>
+            </div>
+          </motion.aside>
+        </div>
       </div>
 
-      {/* Filmstrip */}
-      <div className="relative z-10 border-t border-bone/10 bg-void/40 px-gutter py-3">
-        <ul className="mx-auto flex max-w-shell gap-2 overflow-x-auto pb-1">
+      {/* Filmstrip reel */}
+      <div className="relative z-10 border-t border-phosphor/15 bg-void/40 px-gutter py-3">
+        <ul className="mx-auto flex max-w-5xl gap-2 overflow-x-auto pb-1">
           {projects.map((p, i) => (
             <li key={p.slug} className="shrink-0">
               <button
@@ -211,17 +273,17 @@ export default function PosterLightbox({
                 aria-label={`View ${p.title}`}
                 aria-current={i === index}
                 className={
-                  "relative block h-16 w-[3.4rem] overflow-hidden border transition-all duration-200 sm:h-20 sm:w-16 " +
+                  "relative block h-14 w-[2.9rem] overflow-hidden border transition-all duration-200 sm:h-16 sm:w-[3.2rem] " +
                   (i === index
-                    ? "border-phosphor opacity-100"
-                    : "border-bone/15 opacity-50 hover:opacity-90")
+                    ? "scale-105 border-phosphor opacity-100"
+                    : "border-bone/15 opacity-45 hover:opacity-90")
                 }
               >
                 <Image
                   src={p.cover}
                   alt=""
                   fill
-                  sizes="64px"
+                  sizes="56px"
                   unoptimized={p.cover.endsWith(".svg")}
                   className="object-cover"
                 />
