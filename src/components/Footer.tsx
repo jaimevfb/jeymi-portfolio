@@ -14,13 +14,13 @@ function Sequence() {
         <span key={i} className="flex items-center">
           <span
             className={
-              "font-display text-caption font-bold uppercase tracking-[0.25em] " +
+              "font-display text-micro font-bold uppercase tracking-[0.25em] " +
               (label === "2026" ? "text-phosphor" : "text-bone-dim")
             }
           >
             {label}
           </span>
-          <span className="mx-6 text-phosphor/55" aria-hidden="true">
+          <span className="mx-5 text-micro text-phosphor/55" aria-hidden="true">
             ✦
           </span>
         </span>
@@ -31,7 +31,7 @@ function Sequence() {
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-void-50/80 py-4">
+    <footer className="relative overflow-hidden bg-void-50/80 py-2">
       {/* hairline glow top edge */}
       <span
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-phosphor/15"
