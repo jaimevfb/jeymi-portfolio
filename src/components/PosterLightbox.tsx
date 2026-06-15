@@ -1,21 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import type { Project } from "@/lib/projects";
 import RainBackdrop from "./RainBackdrop";
 import DecodeText from "./DecodeText";
 
 /**
- * Full-screen poster "case file". Designed HUD presentation:
- *  • signature rain + grid + scanlines backdrop (matches the dossier)
- *  • poster framed with corner brackets + a scanning sweep, glitch-resolves in
- *    on open and on navigate, parallax-tilts toward the pointer
- *  • terminal info panel (decode title, meta, tags, blurb, prev/next)
- *  • filmstrip reel along the bottom
- * Keyboard: Esc closes, ←/→ navigate. Swipe to navigate. Scroll locked.
+ * Full-screen poster "case file" — HUD presentation over the signature rain.
+ * Perf: the poster + info reveal TOGETHER, gated on the image decoding (a light
+ * loader shows meanwhile, no text-before-image pop). Neighbours are preloaded
+ * so ←/→ navigation is instant. The entrance is opacity/transform only (no
+ * filter) to avoid jank.
  */
+const IMG_SIZES = "(max-width: 1024px) 86vw, 44vw";
+
 export default function PosterLightbox({
   projects,
   index,
@@ -30,11 +30,22 @@ export default function PosterLightbox({
   const closeRef = useRef<HTMLButtonElement>(null);
   const figRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number } | null>(null);
+  const [ready, setReady] = useState(false);
 
   const n = projects.length;
   const project = projects[index];
-  const prev = () => onSelect((index - 1 + n) % n);
-  const next = () => onSelect((index + 1) % n);
+  const prevI = (index - 1 + n) % n;
+  const nextI = (index + 1) % n;
+  const prev = () => onSelect(prevI);
+  const next = () => onSelect(nextI);
+
+  // Reset the "ready" gate whenever the poster changes. Safety fallback reveals
+  // it after a moment in case onLoad never fires (e.g. cached before bind).
+  useEffect(() => {
+    setReady(false);
+    const t = window.setTimeout(() => setReady(true), 1300);
+    return () => window.clearTimeout(t);
+  }, [index]);
 
   useEffect(() => {
     const prevOverflow = document.documentElement.style.overflow;
@@ -58,7 +69,6 @@ export default function PosterLightbox({
 
   const isSvg = project.cover.endsWith(".svg");
 
-  // Parallax tilt (fine pointer only).
   const onFigMove = (e: React.PointerEvent) => {
     const el = figRef.current;
     if (!el || !window.matchMedia("(pointer: fine)").matches) return;
@@ -73,7 +83,6 @@ export default function PosterLightbox({
         "perspective(1200px) rotateX(0deg) rotateY(0deg)";
   };
 
-  // Swipe / drag to navigate.
   const onDown = (e: React.PointerEvent) => {
     drag.current = { x: e.clientX, y: e.clientY };
   };
@@ -96,7 +105,7 @@ export default function PosterLightbox({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.28 }}
+      transition={{ duration: 0.25 }}
       role="dialog"
       aria-modal="true"
       aria-label={`${project.title} — enlarged`}
@@ -107,7 +116,7 @@ export default function PosterLightbox({
     >
       {/* Designed backdrop */}
       <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-        <RainBackdrop opacity={0.34} density={1} interactive={false} defer={false} />
+        <RainBackdrop opacity={0.32} density={0.9} interactive={false} defer={false} />
       </div>
       <div className="hud-grid pointer-events-none absolute inset-0 z-0 opacity-60" aria-hidden="true" />
       <div className="hud-scan pointer-events-none absolute inset-0 z-0 opacity-40" aria-hidden="true" />
@@ -133,7 +142,7 @@ export default function PosterLightbox({
         </button>
       </div>
 
-      {/* Stage — poster + info */}
+      {/* Stage */}
       <div
         className="relative z-10 flex flex-1 items-center justify-center overflow-hidden px-gutter pb-2"
         onClick={(e) => {
@@ -142,23 +151,34 @@ export default function PosterLightbox({
         onPointerDown={onDown}
         onPointerUp={onUp}
       >
-        <div className="grid w-full max-w-5xl grid-cols-1 items-center gap-8 lg:grid-cols-[auto_minmax(260px,1fr)]">
-          {/* Poster */}
-          <button
-            onClick={prev}
-            aria-label="Previous"
-            className="absolute left-1 top-1/2 z-20 -translate-y-1/2 px-3 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor lg:left-2"
-          >
-            ←
-          </button>
+        {/* Loader while the poster decodes */}
+        {!ready && (
+          <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center gap-3">
+            <span className="font-display text-micro uppercase tracking-[0.3em] text-phosphor/80">
+              ▓ decrypting ▓
+            </span>
+            <span className="h-px w-32 overflow-hidden bg-bone/15">
+              <span className="block h-full w-1/2 animate-[marquee_0.9s_linear_infinite] bg-phosphor" />
+            </span>
+          </div>
+        )}
 
-          <motion.figure
-            key={project.slug}
-            initial={{ opacity: 0, scale: 1.05, filter: "brightness(2.4) blur(6px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "brightness(1) blur(0px)" }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mx-auto"
-          >
+        <button
+          onClick={prev}
+          aria-label="Previous"
+          className="absolute left-1 top-1/2 z-20 -translate-y-1/2 px-3 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor lg:left-2"
+        >
+          ←
+        </button>
+
+        {/* Poster + info reveal together once the image is decoded */}
+        <motion.div
+          animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : 12 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="grid w-full max-w-5xl grid-cols-1 items-center gap-8 lg:grid-cols-[auto_minmax(260px,1fr)]"
+        >
+          {/* Poster */}
+          <figure className="mx-auto">
             <div
               ref={figRef}
               onPointerMove={onFigMove}
@@ -178,6 +198,7 @@ export default function PosterLightbox({
                   muted
                   playsInline
                   controls
+                  onLoadedData={() => setReady(true)}
                   className="max-h-[58vh] w-auto max-w-[86vw] lg:max-w-[44vw]"
                 />
               ) : (
@@ -186,34 +207,21 @@ export default function PosterLightbox({
                   alt={`${project.title} — ${project.blurb}`}
                   width={1080}
                   height={1350}
+                  sizes={IMG_SIZES}
                   unoptimized={isSvg}
-                  className="h-auto max-h-[58vh] w-auto max-w-[86vw] object-contain lg:max-w-[44vw]"
                   priority
+                  onLoad={() => setReady(true)}
+                  className="h-auto max-h-[58vh] w-auto max-w-[86vw] object-contain lg:max-w-[44vw]"
                 />
               )}
-              {/* scan sweep + HUD corners on the poster */}
               <span className="portrait-sweep pointer-events-none absolute inset-x-0 top-0" aria-hidden="true" />
               <span className="pointer-events-none absolute left-1.5 top-1.5 h-5 w-5 border-l-2 border-t-2 opacity-80" style={{ borderColor: "var(--accent)" }} aria-hidden="true" />
               <span className="pointer-events-none absolute bottom-1.5 right-1.5 h-5 w-5 border-b-2 border-r-2 opacity-80" style={{ borderColor: "var(--accent)" }} aria-hidden="true" />
             </div>
-          </motion.figure>
-
-          <button
-            onClick={next}
-            aria-label="Next"
-            className="absolute right-1 top-1/2 z-20 -translate-y-1/2 px-3 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor lg:right-2"
-          >
-            →
-          </button>
+          </figure>
 
           {/* Info panel */}
-          <motion.aside
-            key={`${project.slug}-info`}
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-prose text-center lg:text-left"
-          >
+          <aside className="max-w-prose text-center lg:text-left">
             <p
               className="font-display text-micro uppercase tracking-[0.3em]"
               style={{ color: project.accentColor }}
@@ -221,13 +229,12 @@ export default function PosterLightbox({
               {project.category} · {project.year}
             </p>
             <h2 className="mt-3 font-display text-h2 font-extrabold uppercase leading-[0.95] text-bone">
-              <DecodeText text={project.title} speed={32} />
+              {ready ? <DecodeText text={project.title} speed={32} /> : project.title}
             </h2>
             <p className="mt-4 text-lead text-bone-dim">{project.blurb}</p>
             <p className="mt-3 hidden text-caption leading-relaxed text-bone-faint sm:block">
               {project.description}
             </p>
-
             <ul className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
               {project.tags.map((t) => (
                 <li
@@ -238,13 +245,11 @@ export default function PosterLightbox({
                 </li>
               ))}
             </ul>
-
             {project.role && (
               <p className="mt-5 font-display text-micro uppercase tracking-[0.2em] text-bone-faint">
                 <span className="text-phosphor/70">// role</span> {project.role}
               </p>
             )}
-
             <div className="mt-6 flex items-center justify-center gap-3 lg:justify-start">
               <button
                 onClick={prev}
@@ -259,7 +264,33 @@ export default function PosterLightbox({
                 Next ▸
               </button>
             </div>
-          </motion.aside>
+          </aside>
+        </motion.div>
+
+        <button
+          onClick={next}
+          aria-label="Next"
+          className="absolute right-1 top-1/2 z-20 -translate-y-1/2 px-3 py-6 font-display text-h3 text-bone-dim transition-colors hover:text-phosphor lg:right-2"
+        >
+          →
+        </button>
+
+        {/* Preload neighbours so navigation is instant (offscreen, same URL). */}
+        <div className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0" aria-hidden="true">
+          {[prevI, nextI].map((i) =>
+            projects[i].video ? null : (
+              <Image
+                key={projects[i].slug}
+                src={projects[i].cover}
+                alt=""
+                width={1080}
+                height={1350}
+                sizes={IMG_SIZES}
+                unoptimized={projects[i].cover.endsWith(".svg")}
+                priority
+              />
+            )
+          )}
         </div>
       </div>
 
