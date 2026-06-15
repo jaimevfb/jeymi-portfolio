@@ -6,7 +6,7 @@ import { about } from "@/lib/about";
 import { site } from "@/lib/site";
 import DecodeText from "./DecodeText";
 import RainBackdrop from "./RainBackdrop";
-import PortraitDecrypt from "./PortraitDecrypt";
+import PortraitUnlock from "./PortraitUnlock";
 
 /**
  * Full-screen "About Me" dossier. Opens on the global `open-about` event
@@ -64,7 +64,7 @@ export default function AboutOverlay() {
           // data-lenis-prevent → native scroll inside the modal (fixes Lenis
           // swallowing the wheel). Scrollable container.
           data-lenis-prevent
-          className="fixed inset-0 z-[80] overflow-y-auto overscroll-contain bg-void/90 backdrop-blur-md"
+          className="fixed inset-0 z-[80] overflow-y-auto overscroll-contain bg-void/95"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -73,20 +73,40 @@ export default function AboutOverlay() {
           aria-modal="true"
           aria-label={`About ${site.name}`}
         >
-          {/* Signature rain behind the dossier — fixed to the viewport so it
-              stays put while the content scrolls over it. */}
-          <div
-            className="pointer-events-none fixed inset-0 z-0"
-            aria-hidden="true"
-          >
-            <RainBackdrop opacity={0.32} density={0.9} interactive={false} defer={false} />
+          {/* Designed terminal backdrop — rain + graph grid + scanlines, all
+              fixed to the viewport so they sit still while content scrolls. */}
+          <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
+            <RainBackdrop opacity={0.3} density={0.85} interactive={false} defer={false} />
           </div>
+          <div className="hud-grid pointer-events-none fixed inset-0 z-0 opacity-70" aria-hidden="true" />
+          <div className="hud-scan pointer-events-none fixed inset-0 z-0 opacity-40" aria-hidden="true" />
+          {/* HUD corner frame */}
+          <span className="pointer-events-none fixed left-4 top-4 z-[15] h-8 w-8 border-l border-t border-phosphor/40" aria-hidden="true" />
+          <span className="pointer-events-none fixed right-4 top-4 z-[15] h-8 w-8 border-r border-t border-phosphor/40" aria-hidden="true" />
+          <span className="pointer-events-none fixed bottom-4 left-4 z-[15] h-8 w-8 border-b border-l border-phosphor/40" aria-hidden="true" />
+          <span className="pointer-events-none fixed bottom-4 right-4 z-[15] h-8 w-8 border-b border-r border-phosphor/40" aria-hidden="true" />
 
-          {/* Sticky control bar — Close always reachable while scrolling. */}
-          <div className="sticky top-0 z-20 border-b border-bone/10 bg-void/70 backdrop-blur-md">
-            <div className="mx-auto flex max-w-5xl items-center justify-between px-gutter py-4">
-              <span className="font-display text-caption uppercase tracking-[0.25em] text-phosphor">
+          {/* Sticky status bar */}
+          <div className="sticky top-0 z-20 border-b border-phosphor/15 bg-void/80">
+            <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-gutter py-3">
+              <span className="flex items-center gap-3 font-display text-caption uppercase tracking-[0.25em] text-phosphor">
                 // dossier — {site.name}
+              </span>
+              <span className="hidden items-center gap-4 font-display text-micro uppercase tracking-[0.2em] text-bone-faint sm:flex">
+                {/* equalizer */}
+                <span className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+                  {[0, 1, 2, 3].map((i) => (
+                    <span
+                      key={i}
+                      className="eq-bar block h-full w-[2px] bg-phosphor/70"
+                      style={{ animationDelay: `${i * 0.16}s` }}
+                    />
+                  ))}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-phosphor" />
+                  secure link
+                </span>
               </span>
               <button
                 ref={closeRef}
@@ -107,9 +127,10 @@ export default function AboutOverlay() {
             {/* ── Hero block ── */}
             <section className="grid grid-cols-1 items-center gap-10 py-14 lg:grid-cols-[0.85fr_1.15fr]">
               {about.portrait ? (
-                <PortraitDecrypt
+                <PortraitUnlock
                   src={about.portrait}
                   alt={`${site.name} — portrait`}
+                  name={about.fullName}
                 />
               ) : (
                 <div className="relative mx-auto flex aspect-[4/5] w-full max-w-sm items-center justify-center border border-bone/15 bg-void-100">
