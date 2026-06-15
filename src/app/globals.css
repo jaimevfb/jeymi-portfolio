@@ -189,6 +189,65 @@ body {
   animation: sig-pulse 3s ease-in-out infinite;
 }
 
+/* ── Interactive "decrypt" portrait ──
+   Base layer is an obscured phosphor-CRT ghost; the reveal layer (full colour)
+   is masked to a soft circle that follows the pointer — drag to scan it clear. */
+.portrait-reveal {
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-terminal);
+  -webkit-mask-image: radial-gradient(
+    circle 130px at var(--mx, 50%) var(--my, 50%),
+    #000 0%,
+    #000 36%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle 130px at var(--mx, 50%) var(--my, 50%),
+    #000 0%,
+    #000 36%,
+    transparent 72%
+  );
+}
+.portrait-reveal.is-on {
+  opacity: 1;
+}
+.portrait-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(124, 255, 160, 0.14) 0 1px,
+    transparent 1px 4px
+  );
+  mix-blend-mode: overlay;
+}
+@keyframes portrait-sweep {
+  0% {
+    transform: translateY(-130%);
+  }
+  100% {
+    transform: translateY(230%);
+  }
+}
+.portrait-sweep {
+  height: 26%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(124, 255, 160, 0.45),
+    transparent
+  );
+  animation: portrait-sweep 3.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait-reveal {
+    opacity: 1 !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+  .portrait-sweep {
+    display: none;
+  }
+}
+
 /* Hide default cursor only when the custom magnetic cursor is live. */
 .cursor-hidden,
 .cursor-hidden * {

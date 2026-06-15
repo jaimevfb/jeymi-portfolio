@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { about } from "@/lib/about";
 import { site } from "@/lib/site";
 import DecodeText from "./DecodeText";
+import RainBackdrop from "./RainBackdrop";
+import PortraitDecrypt from "./PortraitDecrypt";
 
 /**
  * Full-screen "About Me" dossier. Opens on the global `open-about` event
@@ -63,7 +64,7 @@ export default function AboutOverlay() {
           // data-lenis-prevent → native scroll inside the modal (fixes Lenis
           // swallowing the wheel). Scrollable container.
           data-lenis-prevent
-          className="fixed inset-0 z-[80] overflow-y-auto overscroll-contain bg-void/96 backdrop-blur-xl"
+          className="fixed inset-0 z-[80] overflow-y-auto overscroll-contain bg-void/90 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -72,6 +73,15 @@ export default function AboutOverlay() {
           aria-modal="true"
           aria-label={`About ${site.name}`}
         >
+          {/* Signature rain behind the dossier — fixed to the viewport so it
+              stays put while the content scrolls over it. */}
+          <div
+            className="pointer-events-none fixed inset-0 z-0"
+            aria-hidden="true"
+          >
+            <RainBackdrop opacity={0.32} density={0.9} interactive={false} defer={false} />
+          </div>
+
           {/* Sticky control bar — Close always reachable while scrolling. */}
           <div className="sticky top-0 z-20 border-b border-bone/10 bg-void/70 backdrop-blur-md">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-gutter py-4">
@@ -89,49 +99,25 @@ export default function AboutOverlay() {
           </div>
 
           <motion.div
-            className="mx-auto max-w-5xl px-gutter pb-28"
+            className="relative z-10 mx-auto max-w-5xl px-gutter pb-28"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
           >
             {/* ── Hero block ── */}
             <section className="grid grid-cols-1 items-center gap-10 py-14 lg:grid-cols-[0.85fr_1.15fr]">
-              <div className="relative mx-auto w-full max-w-sm overflow-hidden border border-bone/15 bg-void-100">
-                <div className="relative aspect-[4/5]">
-                  {about.portrait ? (
-                    <>
-                      <Image
-                        src={about.portrait}
-                        alt={`${site.name} — portrait`}
-                        fill
-                        sizes="(max-width: 1024px) 90vw, 40vw"
-                        className="object-cover grayscale-[0.15]"
-                        priority
-                      />
-                      <span
-                        className="pointer-events-none absolute inset-0 mix-blend-color"
-                        style={{ background: "rgba(57,255,106,0.10)" }}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5"
-                        style={{
-                          background:
-                            "linear-gradient(to top, rgba(7,10,7,0.85), transparent)",
-                        }}
-                        aria-hidden="true"
-                      />
-                    </>
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center px-6 text-center font-display text-caption uppercase tracking-[0.2em] text-bone-faint">
-                      [REPLACE: portrait 4:5]
-                    </span>
-                  )}
-                  <span className="absolute left-3 top-3 font-display text-micro uppercase tracking-[0.2em] text-phosphor/80">
-                    // subject
+              {about.portrait ? (
+                <PortraitDecrypt
+                  src={about.portrait}
+                  alt={`${site.name} — portrait`}
+                />
+              ) : (
+                <div className="relative mx-auto flex aspect-[4/5] w-full max-w-sm items-center justify-center border border-bone/15 bg-void-100">
+                  <span className="px-6 text-center font-display text-caption uppercase tracking-[0.2em] text-bone-faint">
+                    [REPLACE: portrait 4:5]
                   </span>
                 </div>
-              </div>
+              )}
 
               <div>
                 <p className={LABEL}>About</p>
