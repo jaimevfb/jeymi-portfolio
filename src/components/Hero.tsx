@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import HeroName from "./HeroName";
+import TerminalSigil from "./TerminalSigil";
 import Magnetic from "./Magnetic";
 import { openAbout } from "./AboutOverlay";
 import { site } from "@/lib/site";
@@ -26,7 +27,7 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto grid w-full max-w-shell flex-1 grid-cols-12 items-center gap-y-10 px-gutter">
         {/* Headline block — breaks the grid, oversized, left-weighted. */}
-        <div className="col-span-12 lg:col-span-9">
+        <div className="col-span-12 lg:col-span-8">
           <p className="mb-6 flex items-center gap-3 font-display text-caption uppercase tracking-[0.3em] text-phosphor">
             <span className="inline-block h-px w-10 bg-phosphor/60" />
             {site.role}
@@ -71,21 +72,24 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right rail — Swiss meta column. */}
-        <aside className="col-span-12 hidden flex-col gap-6 self-end pb-4 font-display text-micro uppercase tracking-[0.2em] text-bone-faint lg:col-span-3 lg:flex">
-          <div className="border-t rule pt-3">
-            <span className="block text-phosphor/70">// Index</span>
-            <span className="text-bone-dim">15 selected works</span>
-          </div>
-          <div className="border-t rule pt-3">
-            <span className="block text-phosphor/70">// Discipline</span>
-            <span className="text-bone-dim">Poster · Motion · Identity</span>
-          </div>
-          <div className="border-t rule pt-3">
-            <span className="block text-phosphor/70">// Status</span>
-            <span className="text-amber">Open for 2026 opportunities</span>
-          </div>
-        </aside>
+        {/* Right column — interactive system-core sigil + Swiss meta rail. */}
+        <div className="col-span-12 hidden flex-col items-center justify-center gap-12 lg:col-span-4 lg:flex">
+          <TerminalSigil />
+          <aside className="w-full font-display text-micro uppercase tracking-[0.2em] text-bone-faint">
+            <div className="border-t rule pt-3">
+              <span className="block text-phosphor/70">// Index</span>
+              <span className="text-bone-dim">15 selected works</span>
+            </div>
+            <div className="mt-5 border-t rule pt-3">
+              <span className="block text-phosphor/70">// Discipline</span>
+              <span className="text-bone-dim">Poster · Motion · Identity</span>
+            </div>
+            <div className="mt-5 border-t rule pt-3">
+              <span className="block text-phosphor/70">// Status</span>
+              <span className="text-amber">Open for 2026 opportunities</span>
+            </div>
+          </aside>
+        </div>
       </div>
 
       {/* Footer rail of the hero — scroll cue + coordinates. */}

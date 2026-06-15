@@ -151,6 +151,41 @@ body {
   }
 }
 
+/* Terminal sigil — counter-rotating rings + pulsing core. fill-box origin so
+   SVG elements rotate about their own centre. Freezes under reduced motion. */
+.sigil g,
+.sigil circle,
+.sigil text {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes sig-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes sig-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.sig-a {
+  animation: sig-spin 64s linear infinite;
+}
+.sig-b {
+  animation: sig-spin 48s linear infinite reverse;
+}
+.sig-c {
+  animation: sig-spin 30s linear infinite;
+}
+.sig-pulse {
+  animation: sig-pulse 3s ease-in-out infinite;
+}
+
 /* Hide default cursor only when the custom magnetic cursor is live. */
 .cursor-hidden,
 .cursor-hidden * {
