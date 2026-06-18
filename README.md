@@ -1,4 +1,4 @@
-# BERNA — Phosphor Terminal Portfolio
+# JEYMI — Phosphor Terminal Portfolio
 
 An award-quality portfolio for poster design & motion graphics. A void-black,
 phosphor-green "terminal" aesthetic: gallery-still layouts punctuated by a live
