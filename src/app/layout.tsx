@@ -11,7 +11,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — Graphic Design Portfolio`,
+    default: "Jeymi Portfolio 2026",
     template: `%s — ${site.name}`,
   },
   description: site.description,
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   authors: [{ name: site.name }],
   openGraph: {
     type: "website",
-    title: `${site.name} — Graphic Design Portfolio`,
+    title: "Jeymi Portfolio 2026",
     description: site.description,
     url: site.url,
     siteName: site.name,
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — Graphic Design Portfolio`,
+    title: "Jeymi Portfolio 2026",
     description: site.description,
     images: ["/og.svg"],
   },
